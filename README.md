@@ -20,7 +20,7 @@ This action automatically takes the base and head refs from the `pull_request` a
 
 - **paths**: _string_
 
-  YAML-formatted string where each entry is the **path_id** that contains a list of patterns.
+  YAML-formatted string where each entry is the **path_id** that contains a list of path patterns.
 
 ## Outputs
 

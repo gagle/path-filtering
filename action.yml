@@ -11,14 +11,5 @@ inputs:
     description: Ref to the base.
   headRef:
     description: Ref to the head.
-outputs:
-  changed-apps:
-    description: Space-delimited string of changed apps
-  changed-libs:
-    description: Space-delimited string of changed libs
-  changed-dirs:
-    description: Space-delimited string of changed apps and libs
-  changed-implicit-dependencies:
-    description: Space-delimited string of changed implicit dependencies
-  not-affected:
-    description: Whether or not code changes affect the apps or libs
+  paths:
+    description: YAML-formatted string with the path pattern matchers.
