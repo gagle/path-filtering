@@ -102,10 +102,10 @@ const main = async () => {
 
   const result = matchFiles(changedFiles, pathMatchers);
 
-  console.log('Matches:');
+  console.log('\nMatches:');
 
   for (const [pathId, isMatch] of Object.entries(result)) {
-    console.log(`${pathId}: ${isMatch}`);
+    console.log(`  ${pathId}: ${isMatch}`);
     setOutput(pathId, isMatch);
   }
 };
