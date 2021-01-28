@@ -81,8 +81,9 @@ const main = async () => {
     const changedFiles = await getChangedFiles(octokit, base, head);
     const pathMatchers = getPathMatchers(core_1.getInput('paths'));
     const result = matchFiles(changedFiles, pathMatchers);
-    console.log(result);
+    console.log('Matches:');
     for (const [pathId, isMatch] of Object.entries(result)) {
+        console.log(`${pathId}: ${isMatch}`);
         core_1.setOutput(pathId, isMatch);
     }
 };

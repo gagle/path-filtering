@@ -101,8 +101,11 @@ const main = async () => {
   const pathMatchers = getPathMatchers(getInput('paths'));
 
   const result = matchFiles(changedFiles, pathMatchers);
-  console.log(result);
+
+  console.log('Matches:');
+
   for (const [pathId, isMatch] of Object.entries(result)) {
+    console.log(`${pathId}: ${isMatch}`);
     setOutput(pathId, isMatch);
   }
 };
