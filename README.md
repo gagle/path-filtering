@@ -1,6 +1,6 @@
-# check-path-changes
+# path-filtering
 
-GitHub Action that checks if paths have changed.
+GitHub Action that filters paths.
 
 ## Event types
 
