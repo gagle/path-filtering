@@ -1,4 +1,4 @@
-name: Path filtering
+name: Advanced path filtering
 description: GitHub Action that filters paths.
 branding:
   icon: folder
