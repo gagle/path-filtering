@@ -1,9 +1,10 @@
-import { getInput, info, setFailed, setOutput } from '@actions/core';
-import { context, getOctokit } from '@actions/github';
+import { getInput, info, setFailed, setOutput, warning } from '@actions/core';
+import { context } from '@actions/github';
 import { load } from 'js-yaml';
 import * as picomatch from 'picomatch';
 
-type OctoKit = ReturnType<typeof getOctokit>;
+import { exec } from './exec';
+
 type Matcher = (test: string) => boolean;
 
 interface Refs {
@@ -12,25 +13,27 @@ interface Refs {
 }
 
 const getBaseAndHeadRefs = ({ base, head }: Partial<Refs>): Refs => {
-  switch (context.eventName) {
-    case 'pull_request':
-      base = context.payload.pull_request?.base?.sha as string;
-      head = context.payload.pull_request?.head?.sha as string;
-      break;
-    case 'push':
-      base = context.payload.before as string;
-      head = context.payload.after as string;
-      break;
-    default:
-      if (!base || !head) {
-        throw new Error(`Missing 'base' or 'head' refs for event type '${context.eventName}'`);
-      }
+  if (!base && !head) {
+    switch (context.eventName) {
+      case 'pull_request':
+        base = context.payload.pull_request?.base?.sha as string;
+        head = context.payload.pull_request?.head?.sha as string;
+        break;
+      case 'push':
+        base = context.payload.before as string;
+        head = context.payload.after as string;
+        break;
+      default:
+        warning(`Unsupported event: ${context.eventName}`);
+        break;
+    }
   }
 
   if (!base || !head) {
     throw new Error(`Base or head refs are missing`);
   }
 
+  info(`Event name: ${context.eventName}`);
   info(`Base ref: ${base}`);
   info(`Head ref: ${head}`);
 
@@ -40,17 +43,24 @@ const getBaseAndHeadRefs = ({ base, head }: Partial<Refs>): Refs => {
   };
 };
 
-const getChangedFiles = async (octokit: OctoKit, base: string, head: string): Promise<string[]> => {
-  const response = await octokit.repos.compareCommits({
-    base,
-    head,
-    owner: context.repo.owner,
-    repo: context.repo.repo
-  });
+const parseGitDiffOutput = (output: string): string[] => {
+  const tokens = output.split('\u0000').filter(s => s.length > 0);
+  const files: string[] = [];
+  for (let i = 0; i + 1 < tokens.length; i += 2) {
+    files.push(tokens[i + 1]);
+  }
+  return files;
+};
 
-  const files = response.data.files;
+const getChangedFiles = async (base: string, head: string): Promise<string[]> => {
+  await exec('git', ['checkout', base]);
+  await exec('git', ['checkout', head]);
 
-  return files.map(file => file.filename);
+  const stdout = (
+    await exec('git', ['diff', '--no-renames', '--name-status', '-z', `${base}..${head}`])
+  ).stdout;
+
+  return parseGitDiffOutput(stdout);
 };
 
 const getPathMatchers = (yaml: string): Record<string, Matcher> => {
@@ -88,16 +98,12 @@ const matchFiles = (
 };
 
 const main = async () => {
-  const token = process.env.GITHUB_TOKEN;
-
-  const octokit = getOctokit(token as string);
-
   const { base, head } = getBaseAndHeadRefs({
     base: getInput('baseRef'),
     head: getInput('headRef')
   });
 
-  const changedFiles = await getChangedFiles(octokit, base, head);
+  const changedFiles = await getChangedFiles(base, head);
   const pathMatchers = getPathMatchers(getInput('paths'));
 
   const result = matchFiles(changedFiles, pathMatchers);
