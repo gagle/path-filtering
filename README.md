@@ -42,8 +42,6 @@ jobs:
     steps:
       - uses: gagle/check-path-changes@v1.0.0
         id: check-path-changes
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           paths: |
             json:
