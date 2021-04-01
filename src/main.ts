@@ -1,4 +1,4 @@
-import { getInput, info, setFailed, setOutput, warning } from '@actions/core';
+import { getInput, info, setFailed, setOutput } from '@actions/core';
 import { context } from '@actions/github';
 import { load } from 'js-yaml';
 import * as picomatch from 'picomatch';
@@ -24,8 +24,7 @@ const getBaseAndHeadRefs = ({ base, head }: Partial<Refs>): Refs => {
         head = context.payload.after as string;
         break;
       default:
-        warning(`Unsupported event: ${context.eventName}`);
-        break;
+        throw new Error(`Unsupported event: ${context.eventName}`);
     }
   }
 
